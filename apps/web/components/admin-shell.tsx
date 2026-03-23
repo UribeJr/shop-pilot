@@ -15,6 +15,7 @@ import {
   Text
 } from "@shopify/polaris";
 import { GenerateReportButton } from "./generate-report-button";
+import { GenerateDummyDataButton } from "./generate-dummy-data-button";
 import type { SyncSummary } from "@notion-store-analyst/shared";
 
 type NavItem = {
@@ -89,6 +90,10 @@ export function AdminShell({
                   </BlockStack>
                   <Divider />
                   <GenerateReportButton />
+                  <Text as="p" variant="bodyMd" tone="subdued">
+                    Hefty dummy data for quick Notion testing (18 orders, 15 products, varied inventory).
+                  </Text>
+                  <GenerateDummyDataButton />
                   <Text as="p" variant="bodyMd" tone="subdued">
                     The admin app stays minimal. The merchant-facing value lives in the Notion MCP
                     workspace, not in a bulky dashboard.

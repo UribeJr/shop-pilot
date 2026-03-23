@@ -1,36 +1,48 @@
 import { buildWeeklyReport } from "@notion-store-analyst/analytics";
 import { NotionMcpClient } from "@notion-store-analyst/notion-mcp";
-import { getShopifyDataSource } from "@notion-store-analyst/shopify-client";
+import { getHeftyDemoShopifySnapshot, getShopifyDataSource } from "@notion-store-analyst/shopify-client";
 import type { AdapterMode, SyncSummary } from "@notion-store-analyst/shared";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 import { getAppConfig } from "./config";
 import { getPreferredInstallation } from "./shopify-oauth";
 
-export async function runSync(explicitMode?: AdapterMode): Promise<SyncSummary> {
+export type RunSyncOptions = {
+  /** Use hefty dummy Shopify data and sync to real Notion (for quick testing) */
+  useDummyData?: boolean;
+};
+
+export async function runSync(
+  explicitMode?: AdapterMode,
+  options?: RunSyncOptions
+): Promise<SyncSummary> {
   const config = getAppConfig();
   const cookieStore = await cookies();
   const cookieMode = cookieStore.get("notion-mcp-mode")?.value;
   const notionMode =
     explicitMode ?? (cookieMode === "mock" || cookieMode === "real" ? cookieMode : config.NOTION_MCP_MODE);
   const installation = await getPreferredInstallation();
-  const shopifyRuntimeMode =
-    installation?.accessToken || (config.SHOPIFY_ADMIN_ACCESS_TOKEN && config.SHOPIFY_SHOP_DOMAIN)
-      ? "real"
-      : "mock";
+  const useDummy = options?.useDummyData === true;
+
   const notion = new NotionMcpClient({
-    mode: notionMode,
+    mode: useDummy ? "real" : notionMode,
     baseUrl: config.NOTION_MCP_BASE_URL,
     apiKey: config.NOTION_API_KEY ?? config.NOTION_MCP_API_KEY,
     parentPageId: config.NOTION_PARENT_PAGE_ID,
     embedChatUrl: config.SHOPIFY_APP_URL ? `${config.SHOPIFY_APP_URL.replace(/\/$/, "")}/embed/chat` : undefined
   });
   const merchantContext = await notion.getMerchantContext();
-  const snapshot = await getShopifyDataSource({
-    mode: shopifyRuntimeMode,
-    shopDomain: installation?.shopDomain ?? config.SHOPIFY_SHOP_DOMAIN,
-    accessToken: installation?.accessToken ?? config.SHOPIFY_ADMIN_ACCESS_TOKEN
-  });
+
+  const snapshot = useDummy
+    ? getHeftyDemoShopifySnapshot()
+    : await getShopifyDataSource({
+        mode:
+          installation?.accessToken || (config.SHOPIFY_ADMIN_ACCESS_TOKEN && config.SHOPIFY_SHOP_DOMAIN)
+            ? "real"
+            : "mock",
+        shopDomain: installation?.shopDomain ?? config.SHOPIFY_SHOP_DOMAIN,
+        accessToken: installation?.accessToken ?? config.SHOPIFY_ADMIN_ACCESS_TOKEN
+      });
   const report = buildWeeklyReport(snapshot, merchantContext);
   const syncPayload = await notion.syncWorkspace({
     storeDomain: snapshot.shop.domain,
@@ -53,22 +65,24 @@ export async function runSync(explicitMode?: AdapterMode): Promise<SyncSummary> 
     }
   });
 
-  await prisma.shopifyInstallation.upsert({
-    where: { shopDomain: snapshot.shop.domain },
-    update: {
-      accessToken: installation?.accessToken ?? config.SHOPIFY_ADMIN_ACCESS_TOKEN,
-      shopDomain: snapshot.shop.domain,
-      scopes: config.SHOPIFY_SCOPES,
-      appBridgeEnabled: true
-    },
-    create: {
-      storeId: store.id,
-      shopDomain: snapshot.shop.domain,
-      accessToken: installation?.accessToken ?? config.SHOPIFY_ADMIN_ACCESS_TOKEN,
-      scopes: config.SHOPIFY_SCOPES,
-      appBridgeEnabled: true
-    }
-  });
+  if (!useDummy && (installation ?? config.SHOPIFY_ADMIN_ACCESS_TOKEN)) {
+    await prisma.shopifyInstallation.upsert({
+      where: { shopDomain: snapshot.shop.domain },
+      update: {
+        accessToken: installation?.accessToken ?? config.SHOPIFY_ADMIN_ACCESS_TOKEN,
+        shopDomain: snapshot.shop.domain,
+        scopes: config.SHOPIFY_SCOPES,
+        appBridgeEnabled: true
+      },
+      create: {
+        storeId: store.id,
+        shopDomain: snapshot.shop.domain,
+        accessToken: installation?.accessToken ?? config.SHOPIFY_ADMIN_ACCESS_TOKEN ?? "",
+        scopes: config.SHOPIFY_SCOPES,
+        appBridgeEnabled: true
+      }
+    });
+  }
 
   await prisma.notionWorkspaceConnection.upsert({
     where: { storeId: store.id },
