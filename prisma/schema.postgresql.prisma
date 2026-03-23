@@ -1,0 +1,153 @@
+// Use this schema for Render/PostgreSQL. Local dev uses schema.prisma (SQLite).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Store {
+  id                 String                    @id @default(cuid())
+  shopDomain         String                    @unique
+  shopName           String
+  currencyCode       String
+  planDisplayName    String?
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  installation       ShopifyInstallation?
+  notionConnection   NotionWorkspaceConnection?
+  syncRuns           SyncRun[]
+  kpiRecords         KPIRecord[]
+  productSnapshots   ProductSnapshot[]
+  alerts             Alert[]
+  weeklyReports      WeeklyReport[]
+}
+
+model ShopifyInstallation {
+  id               String   @id @default(cuid())
+  storeId          String   @unique
+  shopDomain       String   @unique
+  accessToken      String?
+  scopes           String
+  installedAt      DateTime @default(now())
+  uninstalledAt    DateTime?
+  webhookSecret    String?
+  appBridgeEnabled Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  store            Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model NotionWorkspaceConnection {
+  id                String   @id @default(cuid())
+  storeId           String   @unique
+  workspaceId       String
+  workspaceName     String
+  adapterMode       String
+  connectionStatus  String   @default("connected")
+  lastSyncedAt      DateTime?
+  preferencesPageId String?
+  merchantContextJson String?
+  workspaceStructureJson String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  store             Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model SyncRun {
+  id              String   @id @default(cuid())
+  storeId         String
+  adapterMode     String
+  status          String
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  lastError       String?
+  sourceWindow    String
+  reportSlug      String?
+  ordersCount     Int      @default(0)
+  productsCount   Int      @default(0)
+  customersCount  Int      @default(0)
+  alertsCount     Int      @default(0)
+  payloadPreview  String?
+  store           Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model KPIRecord {
+  id                 String   @id @default(cuid())
+  storeId            String
+  date               DateTime
+  window             String
+  revenue            Float
+  orders             Int
+  averageOrderValue  Float
+  repeatCustomerRate Float
+  createdAt          DateTime @default(now())
+  store              Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model ProductSnapshot {
+  id          String   @id @default(cuid())
+  storeId     String
+  externalId  String
+  title       String
+  sku         String?
+  revenue     Float
+  unitsSold   Int
+  trendLabel  String
+  reason      String
+  priorityHit Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model Alert {
+  id         String   @id @default(cuid())
+  storeId    String
+  code       String
+  severity   String
+  title      String
+  body       String
+  createdAt  DateTime @default(now())
+  store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model WeeklyReport {
+  id                 String   @id @default(cuid())
+  storeId            String
+  slug               String   @unique
+  generatedAt        DateTime
+  executiveSummary   String
+  recommendedActions String
+  rawJson            String
+  createdAt          DateTime @default(now())
+  store              Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model NotionMcpSession {
+  id           String   @id @default(cuid())
+  sessionId    String   @unique
+  accessToken  String
+  refreshToken String?
+  expiresAt    DateTime
+  clientId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model NotionMcpPendingAuth {
+  id           String   @id @default(cuid())
+  state        String   @unique
+  sessionId    String
+  codeVerifier String
+  createdAt    DateTime @default(now())
+}
+
+model NotionMcpConfig {
+  id            String   @id @default(cuid())
+  clientId      String   @unique
+  clientSecret  String?
+  redirectUris  String
+  updatedAt     DateTime @updatedAt
+}

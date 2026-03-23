@@ -1,0 +1,7 @@
+roles = ["frontend"]
+auth_callback_path = ["/api/shopify/callback"]
+webhooks_path = "/api/webhooks/shopify"
+
+[commands]
+dev = "npm run dev"
+build = "npm run build"

@@ -1,0 +1,21 @@
+{
+  "workspaceName": "Northstar Goods Workspace",
+  "merchantPreferences": {
+    "businessFocus": "Focus on repeat purchases",
+    "reportingTone": "operator",
+    "alertThreshold": 0.2,
+    "prioritySkus": [
+      "SPR-001",
+      "SPR-004"
+    ],
+    "priorityCollections": [
+      "Spring Collection"
+    ],
+    "summaryNotes": "Alert me only for major revenue drops and prioritize spring collection SKUs."
+  },
+  "reportingPreferences": {
+    "includeInventoryRisks": true,
+    "includeUnderperformers": true,
+    "majorDropOnly": true
+  }
+}

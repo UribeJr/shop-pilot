@@ -1,0 +1,27 @@
+name = "Notion Store Analyst"
+client_id = "6388125a1f9f95ce491ffaa8cff7873b"
+application_url = "http://localhost:3000"
+embedded = true
+handle = "notion-store-analyst"
+web_directories = ["apps/web"]
+
+[build]
+automatically_update_urls_on_dev = true
+include_config_on_deploy = true
+dev_store_url = "euribe-dev-store.myshopify.com"
+
+[access_scopes]
+scopes = "read_orders,read_products,read_customers,read_inventory"
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [
+  "http://localhost:3000/api/shopify/callback"
+]
+
+[webhooks]
+api_version = "2025-07"
+
+[[webhooks.subscriptions]]
+topics = ["app/uninstalled"]
+uri = "/api/webhooks/shopify"
