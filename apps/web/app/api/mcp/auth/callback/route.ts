@@ -44,11 +44,12 @@ export async function GET(request: Request) {
     await prisma.notionMcpPendingAuth.delete({ where: { state } }).catch(() => {});
 
     const cookieStore = await cookies();
+    const isEmbedContext = process.env.NODE_ENV === "production" && process.env.SHOPIFY_APP_URL?.startsWith("https://");
     cookieStore.set(SESSION_COOKIE, pending.sessionId, {
       path: "/",
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true,
+      sameSite: isEmbedContext ? "none" : "lax",
       maxAge: 60 * 60 * 24 * 365,
     });
 

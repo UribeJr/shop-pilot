@@ -1,6 +1,6 @@
 name = "Notion Store Analyst"
 client_id = "6388125a1f9f95ce491ffaa8cff7873b"
-application_url = "http://localhost:3000"
+application_url = "https://shop-pilot-u2qa.onrender.com"
 embedded = true
 handle = "notion-store-analyst"
 web_directories = ["apps/web"]
@@ -16,7 +16,8 @@ use_legacy_install_flow = false
 
 [auth]
 redirect_urls = [
-  "http://localhost:3000/api/shopify/callback"
+  "https://shop-pilot-u2qa.onrender.com/api/shopify/callback",
+  "https://shop-pilot-u2qa.onrender.com/api/mcp/auth/callback"
 ]
 
 [webhooks]

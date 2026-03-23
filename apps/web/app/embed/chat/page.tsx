@@ -11,7 +11,7 @@ export default function EmbedChatPage() {
 
   const checkStatus = useCallback(async () => {
     try {
-      const res = await fetch("/api/mcp/status");
+      const res = await fetch("/api/mcp/status", { credentials: "include" });
       const data = await res.json();
       setConnected(data.connected === true);
       setError(null);
@@ -48,6 +48,7 @@ export default function EmbedChatPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
+        credentials: "include",
       });
 
       const data = await res.json();

@@ -11,11 +11,12 @@ export async function GET() {
   let sessionId = cookieStore.get(SESSION_COOKIE)?.value;
   if (!sessionId) {
     sessionId = `mcp_${crypto.randomUUID().replace(/-/g, "")}`;
+    const isEmbedContext = process.env.NODE_ENV === "production" && process.env.SHOPIFY_APP_URL?.startsWith("https://");
     cookieStore.set(SESSION_COOKIE, sessionId, {
       path: "/",
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true,
+      sameSite: isEmbedContext ? "none" : "lax",
       maxAge: 60 * 60 * 24 * 365,
     });
   }
