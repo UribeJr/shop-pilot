@@ -29,23 +29,18 @@ export async function createInstallRedirect(shop: string) {
 
   const state = crypto.randomBytes(16).toString("hex");
   const cookieStore = await cookies();
-  cookieStore.set(SHOPIFY_AUTH_COOKIE, state, {
+  const isProduction = process.env.NODE_ENV === "production" && process.env.SHOPIFY_APP_URL?.startsWith("https://");
+  const cookieOpts = {
     httpOnly: true,
-    sameSite: "lax",
-    secure: false,
+    sameSite: "lax" as const,
+    secure: isProduction,
     path: "/"
-  });
-  cookieStore.set(SHOPIFY_SHOP_COOKIE, shop, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: false,
-    path: "/"
-  });
+  };
+  cookieStore.set(SHOPIFY_AUTH_COOKIE, state, cookieOpts);
+  cookieStore.set(SHOPIFY_SHOP_COOKIE, shop, cookieOpts);
 
-  // Use Unified Admin URL to match grant flow (admin.shopify.com/store/.../app/grant)
-  const storeName = shop.replace(/\.myshopify\.com$/i, "");
-  const authorizeBase = storeName ? `https://admin.shopify.com/store/${storeName}` : `https://${shop}`;
-  const installUrl = new URL(`${authorizeBase}/admin/oauth/authorize`);
+  // Legacy OAuth format: https://{shop}.myshopify.com/admin/oauth/authorize (per Shopify auth-code-grant docs)
+  const installUrl = new URL(`https://${shop}/admin/oauth/authorize`);
   installUrl.searchParams.set("client_id", config.NEXT_PUBLIC_SHOPIFY_API_KEY);
   installUrl.searchParams.set("scope", config.SHOPIFY_SCOPES);
   installUrl.searchParams.set(
