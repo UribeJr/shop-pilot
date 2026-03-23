@@ -31,10 +31,6 @@ export default function EmbedChatPage() {
     checkStatus();
   }, [checkStatus]);
 
-  const handleConnect = () => {
-    window.location.href = "/api/mcp/auth/start";
-  };
-
   const handleSend = async () => {
     const text = input.trim();
     if (!text || loading || !connected) return;
@@ -100,9 +96,14 @@ export default function EmbedChatPage() {
           {error && (
             <p style={styles.error}>{error}</p>
           )}
-          <button onClick={handleConnect} style={styles.button}>
+          <a
+            href="/api/mcp/auth/start"
+            target="_top"
+            rel="noopener noreferrer"
+            style={{ ...styles.button, display: "inline-block", textDecoration: "none", textAlign: "center" }}
+          >
             Connect Notion
-          </button>
+          </a>
         </div>
       </div>
     );
