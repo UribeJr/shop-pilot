@@ -57,9 +57,8 @@ export function SetupView({
               Real Shopify install
             </Text>
             <Text as="p" variant="bodyMd" tone="subdued">
-              Shopify recommends embedded apps with managed installation and token exchange. This MVP
-              uses a production-minded local OAuth callback to persist an offline Admin API token for a
-              dev store.
+              Connect any Shopify store (dev or production) via OAuth. Enter the store domain below and
+              complete the install flow to use real store data for reports.
             </Text>
             {hasShopifyOauthConfig ? (
               <ShopifyInstallForm />

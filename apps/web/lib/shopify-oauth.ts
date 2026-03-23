@@ -42,7 +42,10 @@ export async function createInstallRedirect(shop: string) {
     path: "/"
   });
 
-  const installUrl = new URL(`https://${shop}/admin/oauth/authorize`);
+  // Use Unified Admin URL to match grant flow (admin.shopify.com/store/.../app/grant)
+  const storeName = shop.replace(/\.myshopify\.com$/i, "");
+  const authorizeBase = storeName ? `https://admin.shopify.com/store/${storeName}` : `https://${shop}`;
+  const installUrl = new URL(`${authorizeBase}/admin/oauth/authorize`);
   installUrl.searchParams.set("client_id", config.NEXT_PUBLIC_SHOPIFY_API_KEY);
   installUrl.searchParams.set("scope", config.SHOPIFY_SCOPES);
   installUrl.searchParams.set(
