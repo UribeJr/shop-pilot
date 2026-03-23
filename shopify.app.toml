@@ -12,7 +12,8 @@ dev_store_url = "euribe-dev-store.myshopify.com"
 
 [access_scopes]
 scopes = "read_orders,read_products,read_customers,read_inventory"
-use_legacy_install_flow = false
+# Required: we use authorization code grant (manual OAuth redirect), not Shopify managed installation
+use_legacy_install_flow = true
 
 [auth]
 redirect_urls = [
