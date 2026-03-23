@@ -5,7 +5,6 @@ import {
   Badge,
   BlockStack,
   Box,
-  Button,
   Card,
   DataTable,
   Divider,
@@ -15,6 +14,7 @@ import {
   Page,
   Text
 } from "@shopify/polaris";
+import { GenerateReportButton } from "./generate-report-button";
 import type { SyncSummary } from "@notion-store-analyst/shared";
 
 type NavItem = {
@@ -88,9 +88,7 @@ export function AdminShell({
                     ))}
                   </BlockStack>
                   <Divider />
-                  <Button url="/api/sync" variant="primary">
-                    Generate report now
-                  </Button>
+                  <GenerateReportButton />
                   <Text as="p" variant="bodyMd" tone="subdued">
                     The admin app stays minimal. The merchant-facing value lives in the Notion MCP
                     workspace, not in a bulky dashboard.

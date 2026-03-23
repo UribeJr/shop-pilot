@@ -182,7 +182,15 @@ export async function runSync(explicitMode?: AdapterMode): Promise<SyncSummary> 
 }
 
 export async function getLatestSummary(): Promise<SyncSummary | null> {
-  const latestStore = await prisma.store.findFirst({
+  // Prefer the installed store's data (e.g. gameness) over seed/demo stores
+  const installed = await prisma.shopifyInstallation.findFirst({
+    where: { uninstalledAt: null, accessToken: { not: null } },
+    orderBy: { updatedAt: "desc" }
+  });
+  const preferredDomain = installed?.shopDomain;
+
+  let latestStore = await prisma.store.findFirst({
+    where: preferredDomain ? { shopDomain: preferredDomain } : undefined,
     include: {
       notionConnection: true,
       kpiRecords: { orderBy: { date: "desc" } },
@@ -192,6 +200,19 @@ export async function getLatestSummary(): Promise<SyncSummary | null> {
       syncRuns: { orderBy: { completedAt: "desc" }, take: 1 }
     }
   });
+
+  if (!latestStore?.weeklyReports[0] || !latestStore.notionConnection) {
+    latestStore = await prisma.store.findFirst({
+      include: {
+        notionConnection: true,
+        kpiRecords: { orderBy: { date: "desc" } },
+        productSnapshots: { orderBy: { revenue: "desc" } },
+        alerts: { orderBy: { createdAt: "desc" } },
+        weeklyReports: { orderBy: { generatedAt: "desc" } },
+        syncRuns: { orderBy: { completedAt: "desc" }, take: 1 }
+      }
+    });
+  }
 
   if (!latestStore?.weeklyReports[0] || !latestStore.notionConnection) {
     return null;
