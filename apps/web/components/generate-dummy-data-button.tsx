@@ -34,11 +34,11 @@ export function GenerateDummyDataButton() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {message && (
-        <Banner tone={message.type} onDismiss={() => setMessage(null)}>
+        <Banner tone={message.type === "error" ? "critical" : "success"} onDismiss={() => setMessage(null)}>
           {message.text}
         </Banner>
       )}
-      <Button onClick={handleGenerate} loading={loading} tone="secondary">
+      <Button variant="secondary" onClick={handleGenerate} loading={loading}>
         Generate Dummy Data
       </Button>
     </div>

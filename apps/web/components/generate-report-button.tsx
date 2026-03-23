@@ -32,7 +32,7 @@ export function GenerateReportButton() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {message && (
-        <Banner tone={message.type} onDismiss={() => setMessage(null)}>
+        <Banner tone={message.type === "error" ? "critical" : "success"} onDismiss={() => setMessage(null)}>
           {message.text}
         </Banner>
       )}
